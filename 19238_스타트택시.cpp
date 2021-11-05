@@ -3,6 +3,7 @@
 #include <queue>
 #include <vector>
 #include <string.h>
+#include <algorithm>
 using namespace std;
 
 struct Node {
@@ -16,12 +17,20 @@ struct Data {
 	int y;
 	int x;
 	int cnt;
+	int fuel;
+};
+
+struct Person {
+	int y;
+	int x;
+	int dist;
+	int num;
 };
 
 int N, M, K;
 int startY, startX;
 int map[21][21];
-int check[21][21];
+//int check[21][21];
 int arrY[4] = { -1, 0, 0, 1 };
 int arrX[4] = { 0, -1, 1, 0 };
 Node passenger[401];
@@ -33,52 +42,73 @@ bool range(int y, int x) {
 		return true;
 }
 
+bool cmp(Person a, Person b) {
+	if (a.dist <= b.dist) {
+		if (a.dist == b.dist) {
+			if (a.y <= b.y) {
+				if (a.y == b.y) {
+					if (a.x < b.x)
+						return true;
+					else
+						return false;
+				}
+				return true;
+			}
+			else
+				return false;
+		}
+		return true;
+	}
+	else
+		return false;
+}
+
 int search(int a, int b) {
 	queue <Data> q;
-	q.push({a, b, 0});
-	//int check[21][21] = { 0 };
-	memset(check, 0, sizeof(check));
+	q.push({a, b, 0, K});
+	int check[21][21] = { 0 };
+	check[a][b] = 1;
+	vector <Person> v;
 
 	while (!q.empty()) {
 		int y = q.front().y;
 		int x = q.front().x;
 		int cnt = q.front().cnt;
+		int fuel = q.front().fuel;
 		q.pop();
 
-		if (K - cnt < 0)
-			return -1;
+		if (fuel == 0)
+			continue;
 
-		check[y][x] = 1;
-
-		if (map[y][x] != 0 && map[y][x] != -1) {
-			int who = map[y][x];
-			map[y][x] = 0;
-			K = K - cnt;
-			if (K < 0)
-				return -1;
-			
-			return who;
-		}
+		if (map[y][x] != 0 && map[y][x] != -1)
+			v.push_back({ y, x, cnt, map[y][x] });
 
 		for (int i = 0; i < 4; i++) {
 			int ny = y + arrY[i];
 			int nx = x + arrX[i];
 			
 			if (range(ny, nx) && map[ny][nx] != -1 && check[ny][nx] == 0) {
-				q.push({ ny, nx, cnt + 1 });
+				check[ny][nx] = 1;
+				q.push({ ny, nx, cnt + 1, fuel - 1 });
 			}
 		}
 	}
 
-	return -1;
+	if (v.size() == 0)
+		return -1;
+
+	sort(v.begin(), v.end(), cmp);
+	map[v[0].y][v[0].x] = 0;
+	K = K - v[0].dist;
+
+	return v[0].num;
 }
 
 int search2(int a, int b, int c, int d) {
 	queue <Data> q;
 	q.push({ a, b, 0 });
-	//int check[21][21] = { 0 };
-	memset(check, 0, sizeof(check));
-
+	int check[21][21] = { 0 };
+	check[a][b] = 1;
 	while (!q.empty()) {
 		int y = q.front().y;
 		int x = q.front().x;
@@ -87,8 +117,6 @@ int search2(int a, int b, int c, int d) {
 
 		if (K - cnt < 0)
 			return -1;
-
-		check[y][x] = 1;
 
 		if (y == c && x == d) {
 			K = K - cnt;
@@ -107,6 +135,7 @@ int search2(int a, int b, int c, int d) {
 			int nx = x + arrX[i];
 
 			if (range(ny, nx) && map[ny][nx] != -1 && check[ny][nx] == 0) {
+				check[ny][nx] = 1;
 				q.push({ ny, nx, cnt + 1 });
 			}
 		}
