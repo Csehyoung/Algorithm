@@ -1,12 +1,12 @@
 #include <iostream>
 #include <cstdio>
-#include <vector>
+#include <stack>
 #include <string>
 using namespace std;
 
 int main() {
 	while (1) {
-		vector <char> v;
+		stack <char> st;
 		string s;
 		cin >> s;
 		if (s == "0")
@@ -21,10 +21,10 @@ int main() {
 			}
 			
 			if (i < length / 2)
-				v.push_back(s[i]);
+				st.push(s[i]);
 			else{
-				if (v.back() == s[i])
-					v.pop_back();
+				if (st.top() == s[i])
+					st.pop();
 				else {
 					cout << "no" << endl;
 					temp = 1;
